@@ -74,8 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                  onPressed: () {}, icon: const Icon(Icons.home_outlined)),
-              IconButton(onPressed: () {}, icon: const Icon(Icons.calendar_today_outlined)),
+                  onPressed: () {}, icon: const Icon(Icons.home_outlined)),//plus icon besides home icon
+              IconButton(onPressed: () {}, icon: const Icon(Icons.calendar_today_outlined)),//plus icon besides calender icon
             ],
           ),
         ),

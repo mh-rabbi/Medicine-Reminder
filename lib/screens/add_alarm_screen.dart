@@ -26,6 +26,12 @@ class _AddAlarmScreenState extends State<AddAlarmScreen> {
   TimeOfDay _time = TimeOfDay.now();
   String _freq = 'Daily';
   DateTime _startDate = DateTime.now();
+  DateTime? _endDate;
+
+  // 🔹 Helper to format TimeOfDay → DateTime for scheduling // new add
+  DateTime _combineDateAndTime(DateTime date, TimeOfDay time) {
+    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +88,13 @@ class _AddAlarmScreenState extends State<AddAlarmScreen> {
                     ],
                   ),
 
+                  // 🔹 NEW: End Date picker (optional)
+                  Row(
+                    children: [
+                      Expanded(child: _buildEndDatePicker()),
+                    ],
+                  ),
+
                   const SizedBox(height: 18),
 
                   // sound picker placeholder
@@ -119,6 +132,8 @@ class _AddAlarmScreenState extends State<AddAlarmScreen> {
                         time: _time.format(context), // store human readable too
                         frequency: _freq.toString(),
                         startDate: DateFormat('yyyy-MM-dd').format(_startDate),
+                        endDate: DateFormat('yyyy-MM-dd')
+                            .format(_endDate ?? _startDate.add(const Duration(days: 7))),
                         soundPath: "",// fill if user picks sound
                         isActive: true,
                       );
@@ -160,13 +175,16 @@ class _AddAlarmScreenState extends State<AddAlarmScreen> {
                         notificationSettings: NotificationSettings.fromJson(
                           {
                             "title": _nameCtrl.text,
-                            "body": "I want to wake up",
+                            "body": "You need to take the medicine",
                           }
                         ),  // show notification if app killed
                       );
 
                       // 6) Schedule with plugin
                       await Alarm.set(alarmSettings: alarmSettings);
+
+                      // 🔹 Schedule repeats
+                      await _scheduleRepeats(alarmData, scheduledDate, _freq, _endDate);
 
                       setState(() {
 
@@ -191,6 +209,49 @@ class _AddAlarmScreenState extends State<AddAlarmScreen> {
       ),
     );
   }
+
+  // new add things again
+  // 🔹 Repeating scheduler (Daily / Weekly / Monthly)
+  Future<void> _scheduleRepeats(
+      int id,
+      DateTime first,
+      String freq,
+      DateTime? endDate,
+      ) async {
+    if (freq == 'Custom') return; // handle later if needed
+    Duration interval;
+    switch (freq) {
+      case 'Weekly':
+        interval = const Duration(days: 7);
+        break;
+      case 'Monthly':
+        interval = const Duration(days: 30);
+        break;
+      default:
+        interval = const Duration(days: 1);
+    }
+
+    DateTime next = first.add(interval);
+    final end = endDate ?? first.add(const Duration(days: 7));
+
+    while (next.isBefore(end)) {
+      await Alarm.set(
+        alarmSettings: AlarmSettings(
+          id: id + next.millisecondsSinceEpoch % 100000, // unique-ish ID
+          dateTime: next,
+          assetAudioPath: 'assets/testalarm.mp3',
+          loopAudio: true,
+          vibrate: true,
+          notificationSettings: NotificationSettings(
+            title: _nameCtrl.text,
+            body: 'Time to take your medicine',
+          ), volumeSettings: VolumeSettings.fade(fadeDuration: Duration(seconds: 1)),
+        ),
+      );
+      next = next.add(interval);
+    }
+  }
+
 
   Widget _buildTextField(String label, {TextEditingController? controller, String? hint}) {
     return Column(
@@ -274,6 +335,33 @@ class _AddAlarmScreenState extends State<AddAlarmScreen> {
       ],
     );
   }
+// 🔹 End Date Picker
+  Widget _buildEndDatePicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('End Date', style: TextStyle(fontSize: 12, color: Colors.black54)),
+        const SizedBox(height: 6),
+        GestureDetector(
+          onTap: _pickEndDate,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            decoration:
+            BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(12)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(_endDate == null
+                    ? 'Select date'
+                    : DateFormat.yMMMd().format(_endDate!)),
+                const Icon(Icons.calendar_today_outlined),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   Future<void> _pickTime() async {
     final t = await showTimePicker(context: context, initialTime: _time);
@@ -284,4 +372,15 @@ class _AddAlarmScreenState extends State<AddAlarmScreen> {
     final d = await showDatePicker(context: context, initialDate: _startDate, firstDate: DateTime(2020), lastDate: DateTime(2100));
     if (d != null) setState(() => _startDate = d);
   }
+
+
+  Future<void> _pickEndDate() async {
+    final d = await showDatePicker(
+        context: context,
+        initialDate: _endDate ?? _startDate,
+        firstDate: _startDate,
+        lastDate: DateTime(2100));
+    if (d != null) setState(() => _endDate = d);
+  }
 }
+

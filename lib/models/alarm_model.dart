@@ -6,6 +6,7 @@ class AlarmModel {
   String time; // Example: "08:00 AM"
   String frequency; // Daily / Weekly / Monthly / Custom
   String startDate; // "YYYY-MM-DD"
+  String endDate;   // "YYYY-MM-DD"
   String soundPath; // file name or uri
   bool isActive;
 
@@ -16,6 +17,7 @@ class AlarmModel {
     required this.time,
     required this.frequency,
     required this.startDate,
+    required this.endDate,
     required this.soundPath,
     this.isActive = true,
   });
@@ -28,6 +30,7 @@ class AlarmModel {
     'time': time,
     'frequency': frequency,
     'startDate': startDate,
+    'endDate': endDate,
     'soundPath': soundPath,
     'isActive': isActive ? 1 : 0,
   };
@@ -40,6 +43,7 @@ class AlarmModel {
     time: map['time'],
     frequency: map['frequency'],
     startDate: map['startDate'],
+    endDate: map['endDate'],
     soundPath: map['soundPath'],
     isActive: map['isActive'] == 1,
   );
