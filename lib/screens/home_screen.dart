@@ -90,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   CircleAvatar(
                     radius: 22,
-                    backgroundImage: AssetImage('assets/profile.png'),
+                    backgroundImage: AssetImage('assets/profile.jpg'),
                     // fallback
                     onBackgroundImageError: (_, __) {},
                   ),
@@ -207,7 +207,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       name: alarm.name,
                       time: alarm.time,
                       note: alarm.note,
-                      color: Colors.red,
+                      color: AppColors.accent,
+                      isActive: alarm.isActive ?? true, // 🔹 added
+                      frequency: alarm.frequency ?? "Daily", // 🔹 added
+                      startDate: alarm.startDate ?? DateFormat('yyyy-MM-dd').format(DateTime.now()),
+                      endDate: alarm.endDate ?? DateFormat('yyyy-MM-dd').format(DateTime.now()),
                       onTap: () async {
                         // navigate to edit screen
                         await Navigator.of(context).push(_bottomUpRoute(const AddAlarmScreen()));

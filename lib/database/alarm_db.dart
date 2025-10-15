@@ -35,7 +35,7 @@ class AlarmDatabase {
         time TEXT NOT NULL,
         frequency TEXT NOT NULL,
         startDate TEXT NOT NULL,
-         endDate TEXT,
+        endDate TEXT,
         soundPath TEXT,
         isActive INTEGER NOT NULL
       )
